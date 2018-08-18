@@ -52,6 +52,7 @@ public class HelloSceneformActivity extends AppCompatActivity {
     boolean existCube = false;
     Node[][] nodeArray;
     Switch addSh;
+    Node[][] enemyNode;
 
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
@@ -66,12 +67,12 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
 
         nodeArray = new Node[10][10];
-        Node[][] enemyNode = new Node[9][9];
+        enemyNode = new Node[10][10];
 
         setContentView(R.layout.activity_ux);
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
-        addSh = (Switch)findViewById(R.id.switch1);
+        addSh = (Switch) findViewById(R.id.switch1);
 
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -111,63 +112,71 @@ public class HelloSceneformActivity extends AppCompatActivity {
                             toast.show();
                             return null;
                         });
-        if (!existCube) {
-            arFragment.setOnTapArPlaneListener(
-                    (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-                        Battlefield mine = new Battlefield();
-                        //Battlefield.OneShip oneShip = new Battlefield.OneShip(new Point(1, 1), new Point(1, 1));
+
+        arFragment.setOnTapArPlaneListener(
+                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
+                    if (existCube)
+                        return;
+                    Battlefield mine = new Battlefield();
+                    //Battlefield.OneShip oneShip = new Battlefield.OneShip(new Point(1, 1), new Point(1, 1));
 
 
-                        //Toast.makeText(HelloSceneformActivity.this, "!!!!!!", Toast.LENGTH_SHORT).show();
-                        Anchor anchor = hitResult.createAnchor();
-                        AnchorNode anchorNode = new AnchorNode(anchor);
-                        anchorNode.setParent(arFragment.getArSceneView().getScene());
+                    //Toast.makeText(HelloSceneformActivity.this, "!!!!!!", Toast.LENGTH_SHORT).show();
+                    Anchor anchor = hitResult.createAnchor();
+                    AnchorNode anchorNode = new AnchorNode(anchor);
+                    anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-                        Node baseNode = new Node();
-                        anchorNode.addChild(baseNode);
-                        baseNode.setWorldScale(new Vector3(.02f, .025f,.02f));
+                    Node baseNode = new Node();
+                    anchorNode.addChild(baseNode);
+                    baseNode.setWorldScale(new Vector3(.02f, .025f, .02f));
 //                baseNode.setLocalPosition(new Vector3(0.2f, 0.001f, .2f));
 
-                        float count = 9;
-                        float offset = 1.7f;
-                        //   for(int y = 0; y<2; y++) {
+                    float count = 9;
+                    float offset = 1.7f;
+                    for (int y = 0; y < 2; y++) {
                         //float step = 0.01f / count;
                         for (int i = 0; i < count; i++) {
                             for (int j = 0; j < count; j++) {
                                 //   float offset = (step - 0.28f);
                                 addObject(baseNode, offset * j,
-                                        offset * i, mine, j, i);
+                                        offset * i, mine, j, i, y);
 
                             }
                         }
-                        //            }
-                        existCube = true;
 
-                    });
-        }
+                    }
+                    existCube = true;
+
+                });
     }
 
-    public void addObject(Node baseNode, float xOffset, float zOffset, Battlefield mine, int xpos, int ypos) {
+
+    public void addObject(Node baseNode, float xOffset, float zOffset, Battlefield mine, int xpos, int ypos, int y) {
         Node node = new Node();
         node.setParent(baseNode);
         node.setRenderable(blank);
-        node.setLocalPosition(new Vector3(xOffset, 0.0f, zOffset));
+        if (y == 0)
+            node.setLocalPosition(new Vector3(xOffset, 0.0f, zOffset));
+        else
+            node.setLocalPosition(new Vector3(xOffset + 19f, 0.0f, zOffset));
         node.setOnTapListener((hitTestResult, motionEvent) -> {
-            if (addSh.isChecked()) {
-            // mine.addShip();
-            node.setRenderable(yep);
+                    if (addSh.isChecked()) {
+                        // mine.addShip();
+                        node.setRenderable(yep);
                     } else {
-                node.setRenderable(blank);
+                        node.setRenderable(blank);
 //                        if (enemy.fire(new Point(xpos, ypos)))
 //                            node.setRenderable(yep);
 //                        else
 //                            node.setRenderable(nothing);
-       }
-    }
+                    }
+                }
         );
-
-    nodeArray[xpos][ypos]=node;
-}
+        if (y == 0)
+            nodeArray[xpos][ypos] = node;
+        else
+            enemyNode[xpos][ypos] = node;
+    }
 
 
     /**
