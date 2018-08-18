@@ -64,13 +64,14 @@ public class HelloSceneformActivity extends AppCompatActivity {
             return;
         }
 
-        addSh = findViewById(R.id.switch1);
 
         nodeArray = new Node[10][10];
         Node[][] enemyNode = new Node[9][9];
 
         setContentView(R.layout.activity_ux);
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+
+        addSh = (Switch)findViewById(R.id.switch1);
 
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -152,15 +153,16 @@ public class HelloSceneformActivity extends AppCompatActivity {
         node.setRenderable(blank);
         node.setLocalPosition(new Vector3(xOffset, 0.0f, zOffset));
         node.setOnTapListener((hitTestResult, motionEvent) -> {
-            //  if (addSh.isActivated()) {
+            if (addSh.isChecked()) {
             // mine.addShip();
             node.setRenderable(yep);
-            //        } else {
+                    } else {
+                node.setRenderable(blank);
 //                        if (enemy.fire(new Point(xpos, ypos)))
 //                            node.setRenderable(yep);
 //                        else
 //                            node.setRenderable(nothing);
-     //   }
+       }
     }
         );
 
