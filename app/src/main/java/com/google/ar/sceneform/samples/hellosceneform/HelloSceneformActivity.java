@@ -23,9 +23,11 @@ import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -38,7 +40,12 @@ import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.samples.hellosceneform.model.Battlefield;
+import com.google.ar.sceneform.samples.hellosceneform.model.ConnectionChannel;
+import com.google.ar.sceneform.samples.hellosceneform.model.Message;
 import com.google.ar.sceneform.ux.ArFragment;
+import com.google.gson.Gson;
+
+import java.util.Locale;
 
 /**
  * This is an example activity that uses the Sceneform UX package to make common AR tasks easier.
@@ -49,10 +56,19 @@ public class HelloSceneformActivity extends AppCompatActivity {
 
     private ArFragment arFragment;
     private ModelRenderable blank, nothing, yep;
+    private Battlefield myField = new Battlefield();
+
     boolean existCube = false;
     Node[][] nodeArray;
-    Switch addSh;
     Node[][] enemyNode;
+
+    Button buttonConnect;
+    Button buttonSend;
+
+    SwitchCompat deviceRole; // true - master, false - slave
+
+    ConnectionChannel connectionChannel;
+    final String deviceName = String.format(Locale.CANADA, "Device %d", (int)(Math.random() * 1000));
 
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
@@ -60,94 +76,113 @@ public class HelloSceneformActivity extends AppCompatActivity {
     // FutureReturnValueIgnored is not valid
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (!checkIsSupportedDeviceOrFinish(this)) {
-            return;
-        }
-
-
-        nodeArray = new Node[10][10];
-        enemyNode = new Node[10][10];
-
         setContentView(R.layout.activity_ux);
-        arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
-        addSh = (Switch) findViewById(R.id.switch1);
+//        if (!checkIsSupportedDeviceOrFinish(this)) {
+//            return;
+//        }
+
+        connectionChannel = new ConnectionChannel(this, getPackageName(), deviceName);
+
+        buttonConnect = findViewById(R.id.button2);
+        buttonConnect.setOnClickListener(view -> {
+            if (deviceRole.isChecked()){
+                connectionChannel.advertise();
+            }else {
+                connectionChannel.discover();
+            }
+        });
+
+        buttonSend = findViewById(R.id.button3);
+        buttonSend.setOnClickListener(view -> {
+            String message = "Send value " +  Math.random();
+            connectionChannel.sendMessage(new Gson().toJson(new Message(message)), deviceName);
+        });
+
+//        nodeArray = new Node[10][10];
+//        enemyNode = new Node[10][10];
+
+
+      //  arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+
 
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
-        ModelRenderable.builder()
-                .setSource(this, R.raw.blank2)
-                .build()
-                .thenAccept(renderable -> blank = renderable)
-                .exceptionally(
-                        throwable -> {
-                            Toast toast =
-                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-                            toast.setGravity(Gravity.CENTER, 0, 0);
-                            toast.show();
-                            return null;
-                        });
-        ModelRenderable.builder()
-                .setSource(this, R.raw.nothing)
-                .build()
-                .thenAccept(renderable -> nothing = renderable)
-                .exceptionally(
-                        throwable -> {
-                            Toast toast =
-                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-                            toast.setGravity(Gravity.CENTER, 0, 0);
-                            toast.show();
-                            return null;
-                        });
-        ModelRenderable.builder()
-                .setSource(this, R.raw.tugboat)
-                .build()
-                .thenAccept(renderable -> yep = renderable)
-                .exceptionally(
-                        throwable -> {
-                            Toast toast =
-                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-                            toast.setGravity(Gravity.CENTER, 0, 0);
-                            toast.show();
-                            return null;
-                        });
+//        ModelRenderable.builder()
+//                .setSource(this, R.raw.blank2)
+//                .build()
+//                .thenAccept(renderable -> blank = renderable)
+//                .exceptionally(
+//                        throwable -> {
+//                            Toast toast =
+//                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
+//                            toast.setGravity(Gravity.CENTER, 0, 0);
+//                            toast.show();
+//                            return null;
+//                        });
+//        ModelRenderable.builder()
+//                .setSource(this, R.raw.nothing)
+//                .build()
+//                .thenAccept(renderable -> nothing = renderable)
+//                .exceptionally(
+//                        throwable -> {
+//                            Toast toast =
+//                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
+//                            toast.setGravity(Gravity.CENTER, 0, 0);
+//                            toast.show();
+//                            return null;
+//                        });
+//        ModelRenderable.builder()
+//                .setSource(this, R.raw.tugboat)
+//                .build()
+//                .thenAccept(renderable -> yep = renderable)
+//                .exceptionally(
+//                        throwable -> {
+//                            Toast toast =
+//                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
+//                            toast.setGravity(Gravity.CENTER, 0, 0);
+//                            toast.show();
+//                            return null;
+//                        });
 
-        arFragment.setOnTapArPlaneListener(
-                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-                    if (existCube)
-                        return;
-                    Battlefield mine = new Battlefield();
-                    //Battlefield.OneShip oneShip = new Battlefield.OneShip(new Point(1, 1), new Point(1, 1));
+        deviceRole = findViewById(R.id.switch1);
 
 
-                    //Toast.makeText(HelloSceneformActivity.this, "!!!!!!", Toast.LENGTH_SHORT).show();
-                    Anchor anchor = hitResult.createAnchor();
-                    AnchorNode anchorNode = new AnchorNode(anchor);
-                    anchorNode.setParent(arFragment.getArSceneView().getScene());
 
-                    Node baseNode = new Node();
-                    anchorNode.addChild(baseNode);
-                    baseNode.setWorldScale(new Vector3(.02f, .025f, .02f));
-//                baseNode.setLocalPosition(new Vector3(0.2f, 0.001f, .2f));
-
-                    float count = 9;
-                    float offset = 1.7f;
-                    for (int y = 0; y < 2; y++) {
-                        //float step = 0.01f / count;
-                        for (int i = 0; i < count; i++) {
-                            for (int j = 0; j < count; j++) {
-                                //   float offset = (step - 0.28f);
-                                addObject(baseNode, offset * j,
-                                        offset * i, mine, j, i, y);
-
-                            }
-                        }
-
-                    }
-                    existCube = true;
-
-                });
+//        arFragment.setOnTapArPlaneListener(
+//                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
+//                    if (existCube)
+//                        return;
+//                    //Battlefield.OneShip oneShip = new Battlefield.OneShip(new Point(1, 1), new Point(1, 1));
+//
+//
+//                    //Toast.makeText(HelloSceneformActivity.this, "!!!!!!", Toast.LENGTH_SHORT).show();
+//                    Anchor anchor = hitResult.createAnchor();
+//                    AnchorNode anchorNode = new AnchorNode(anchor);
+//                    anchorNode.setParent(arFragment.getArSceneView().getScene());
+//
+//                    Node baseNode = new Node();
+//                    anchorNode.addChild(baseNode);
+//                    baseNode.setWorldScale(new Vector3(.02f, .025f, .02f));
+////                baseNode.setLocalPosition(new Vector3(0.2f, 0.001f, .2f));
+//
+//                    float count = 9;
+//                    float offset = 1.7f;
+//                    for (int y = 0; y < 2; y++) {
+//                        //float step = 0.01f / count;
+//                        for (int i = 0; i < count; i++) {
+//                            for (int j = 0; j < count; j++) {
+//                                //   float offset = (step - 0.28f);
+//                                addObject(baseNode, offset * j,
+//                                        offset * i, myField, j, i, y);
+//
+//                            }
+//                        }
+//
+//                    }
+//                    existCube = true;
+//
+//                });
     }
 
 
@@ -160,15 +195,11 @@ public class HelloSceneformActivity extends AppCompatActivity {
         else
             node.setLocalPosition(new Vector3(xOffset + 19f, 0.0f, zOffset));
         node.setOnTapListener((hitTestResult, motionEvent) -> {
-                    if (addSh.isChecked()) {
-                        // mine.addShip();
+                    Point shipCoord = new Point(xpos, ypos);
+
+                    if (!myField.isPlaced(shipCoord, shipCoord)) {
                         node.setRenderable(yep);
-                    } else {
-                        node.setRenderable(blank);
-//                        if (enemy.fire(new Point(xpos, ypos)))
-//                            node.setRenderable(yep);
-//                        else
-//                            node.setRenderable(nothing);
+                        myField.addShip(new Battlefield.OneShip(shipCoord, shipCoord));
                     }
                 }
         );

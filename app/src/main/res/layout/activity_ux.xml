@@ -13,10 +13,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".HelloSceneformActivity">
 
   <fragment
@@ -25,9 +26,29 @@
       android:layout_width="match_parent"
       android:layout_height="match_parent" />
 
-  <Switch
-      android:id="@+id/switch1"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Connect" />
 
-</FrameLayout>
+    <Button
+        android:id="@+id/button3"
+        android:layout_below="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send" />
+
+  <android.support.v7.widget.SwitchCompat
+      android:id="@+id/switch1"
+
+      android:layout_below="@+id/button3"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Device role"
+      android:padding="10dp"
+      android:drawablePadding="10dp"
+      app:switchPadding="16dp"
+      />
+
+</RelativeLayout>

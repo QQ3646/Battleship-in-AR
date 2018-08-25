@@ -56,7 +56,18 @@ public class Battlefield {
         field = new boolean[size][size];
     }
 
-    public abstract class Ship {
+    public boolean isPlaced(Point start, Point finish) {
+        boolean result = false;
+        for (Ship ship: ships) {
+           if (start.x == ship.start.x && start.y == ship.start.y){
+               return true;
+           }
+        }
+
+        return result;
+    }
+
+    public static abstract class Ship {
         Point start, finish;
         protected ArrayList<Point> damage = new ArrayList<Point>();
 
@@ -70,7 +81,7 @@ public class Battlefield {
         }
     }
 
-    public  class OneShip extends Ship {
+    public static class OneShip extends Ship {
 
         public OneShip(Point start, Point finish) {
             super(start, finish);
